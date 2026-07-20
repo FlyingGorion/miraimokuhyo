@@ -1,0 +1,12 @@
+# Xcode
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+
+# macOS
+.DS_Store
+
+# Secrets - このファイルはGitに含めない
+Secrets.xcconfig
