@@ -119,6 +119,29 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    func deleteAccount() async {
+        guard let userId = session?.user.id else {
+            errorMessage = "ユーザー情報が取得できません。"
+            return
+        }
+        
+        do {
+            // Supabase の RPC 関数でアカウントを削除
+            // （データベースの ON DELETE CASCADE により関連データも全て削除される）
+            try await supabase.rpc("delete_user").execute()
+            
+            try await supabase.auth.signOut()
+            session = nil
+            print("✅ [AUTH] Account deleted successfully")
+        } catch {
+            print("❌ [AUTH] DeleteAccount failed")
+            print("   UserID: \(userId)")
+            print("   Error: \(error)")
+            print("   LocalizedDescription: \(error.localizedDescription)")
+            errorMessage = "アカウントの削除に失敗しました。"
+        }
+    }
+    
     func signOut() async {
         do {
             try await supabase.auth.signOut()

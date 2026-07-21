@@ -13,6 +13,8 @@ struct SettingsView: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @State private var showEditDesiredSelf = false
     @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
+    @State private var isDeletingAccount = false
     
     private var userId: UUID {
         authViewModel.session?.user.id ?? UUID()
@@ -70,6 +72,26 @@ struct SettingsView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
+                
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteAccountConfirmation = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isDeletingAccount {
+                                ProgressView()
+                                    .padding(.trailing, 8)
+                            }
+                            Text("アカウントを削除")
+                            Spacer()
+                        }
+                    }
+                    .disabled(isDeletingAccount)
+                } footer: {
+                    Text("アカウントを削除すると、すべてのデータが完全に削除され、元に戻すことはできません。")
+                        .font(.caption)
+                }
             }
             .navigationTitle("設定")
             .sheet(isPresented: $showEditDesiredSelf) {
@@ -86,6 +108,20 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("ログアウトすると、再度ログインが必要になります。")
+            }
+            .confirmationDialog("アカウントを削除しますか？", isPresented: $showDeleteAccountConfirmation, titleVisibility: .visible) {
+                Button("アカウントを削除", role: .destructive) {
+                    isDeletingAccount = true
+                    Task {
+                        await authViewModel.deleteAccount()
+                        isDeletingAccount = false
+                    }
+                }
+                Button("キャンセル", role: .cancel) {
+                    // 何もしない
+                }
+            } message: {
+                Text("すべての目標・マイルストーン・設定データが完全に削除されます。この操作は取り消せません。")
             }
             .task {
                 await settingsViewModel.fetchSettings(userId: userId)
